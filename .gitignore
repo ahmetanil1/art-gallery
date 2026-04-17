@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+venv/
+backend/venv/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+
+# Django
+backend/db.sqlite3
+backend/media/
+backend/staticfiles/
+backend/.env
+
+# Docker
+postgres_data/
+
+# IDE
+.vscode/
+.idea/
+*.swp
