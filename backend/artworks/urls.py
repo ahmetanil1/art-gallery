@@ -9,6 +9,12 @@ from .views import (
     FavoriteDeleteView,
     FavoriteListView,
 )
+from .upload_views import (
+    AdminArtworkCreateView,
+    AdminArtworkUpdateView,
+    AdminArtworkImageUploadView,
+    AdminArtworkSetPrimaryImageView,
+)
 
 router = DefaultRouter()
 router.register("artworks", ArtworkViewSet, basename="artwork")
@@ -20,4 +26,9 @@ urlpatterns = [
     path("", include(router.urls)),
     path("favorites/", FavoriteListView.as_view(), name="favorites-list"),
     path("favorites/<int:pk>/", FavoriteDeleteView.as_view(), name="favorites-delete"),
+    # Admin eser yönetimi
+    path("admin/artworks/", AdminArtworkCreateView.as_view(), name="admin-artwork-create"),
+    path("admin/artworks/<int:pk>/", AdminArtworkUpdateView.as_view(), name="admin-artwork-detail"),
+    path("admin/artworks/<int:artwork_id>/images/", AdminArtworkImageUploadView.as_view(), name="admin-artwork-images"),
+    path("admin/artworks/<int:artwork_id>/images/<int:image_id>/set-primary/", AdminArtworkSetPrimaryImageView.as_view(), name="admin-artwork-set-primary"),
 ]

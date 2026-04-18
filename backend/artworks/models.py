@@ -1,7 +1,23 @@
+import uuid
+import os
 from django.conf import settings
 from django.contrib.postgres.indexes import BrinIndex, GinIndex
 from django.contrib.postgres.search import SearchVectorField
 from django.db import models
+
+
+def artwork_image_upload_path(instance, filename):
+    """Unique dosya yolu: media/artworks/<artwork_id>/<uuid>.<ext>"""
+    ext = os.path.splitext(filename)[1].lower()
+    unique_name = f"{uuid.uuid4().hex}{ext}"
+    artwork_id = instance.artwork_id or "tmp"
+    return os.path.join("artworks", str(artwork_id), unique_name)
+
+
+def artist_image_upload_path(instance, filename):
+    """Unique dosya yolu: media/artists/<uuid>.<ext>"""
+    ext = os.path.splitext(filename)[1].lower()
+    return os.path.join("artists", f"{uuid.uuid4().hex}{ext}")
 
 
 class Artist(models.Model):
@@ -12,7 +28,7 @@ class Artist(models.Model):
     birth_year = models.IntegerField(null=True, blank=True)
     nationality = models.CharField(max_length=100, blank=True)
     profile_picture = models.ImageField(
-        upload_to="artists/", null=True, blank=True
+        upload_to=artist_image_upload_path, null=True, blank=True
     )
     website = models.URLField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -100,7 +116,7 @@ class ArtworkImage(models.Model):
     artwork = models.ForeignKey(
         Artwork, on_delete=models.CASCADE, related_name="images"
     )
-    image = models.ImageField(upload_to="artworks/")
+    image = models.ImageField(upload_to=artwork_image_upload_path)
     is_primary = models.BooleanField(default=False)
     order = models.PositiveSmallIntegerField(default=0)
 
@@ -110,6 +126,12 @@ class ArtworkImage(models.Model):
 
     def __str__(self):
         return f"{self.artwork.title} - Görsel {self.order}"
+
+    @property
+    def image_url(self):
+        if self.image:
+            return self.image.url
+        return None
 
 
 class Favorite(models.Model):

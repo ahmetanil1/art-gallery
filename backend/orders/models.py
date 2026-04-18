@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.postgres.indexes import BrinIndex
 from django.db import models
+from .cart_models import Cart, CartItem  # noqa: F401 — re-export
 
 
 class Order(models.Model):

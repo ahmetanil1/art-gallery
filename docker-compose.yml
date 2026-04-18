@@ -26,17 +26,30 @@ services:
     env_file:
       - ./backend/.env
     volumes:
-      - ./backend:/app
       - media_files:/app/media
+      - static_files:/app/staticfiles
     ports:
       - "8000:8000"
     depends_on:
       db:
         condition: service_healthy
-    command: >
-      sh -c "python manage.py migrate &&
-             python manage.py runserver 0.0.0.0:8000"
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: sanat_galerisi_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - media_files:/app/media:ro
+      - frontend_dist:/usr/share/nginx/html:ro
+    depends_on:
+      - backend
 
 volumes:
   postgres_data:
   media_files:
+  static_files:
+  frontend_dist:

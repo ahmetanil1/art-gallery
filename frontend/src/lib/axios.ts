@@ -1,8 +1,11 @@
 import axios from "axios";
 
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
+
 const api = axios.create({
-  baseURL: "http://localhost:8000/api",
+  baseURL: BASE_URL,
   headers: { "Content-Type": "application/json" },
+  timeout: 15000,
 });
 
 // Her istekte token ekle
@@ -22,10 +25,7 @@ api.interceptors.response.use(
       const refresh = localStorage.getItem("refresh_token");
       if (refresh) {
         try {
-          const { data } = await axios.post(
-            "http://localhost:8000/api/auth/token/refresh/",
-            { refresh }
-          );
+          const { data } = await axios.post(`${BASE_URL}/auth/token/refresh/`, { refresh });
           localStorage.setItem("access_token", data.access);
           original.headers.Authorization = `Bearer ${data.access}`;
           return api(original);

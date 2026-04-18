@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import { artworkService } from "../services/artworkService";
+import { useCartStore } from "../store/cartStore";
+import { useAuthStore } from "../store/authStore";
 import type { Artwork } from "../types";
 import StarRating from "../components/StarRating";
 
@@ -12,6 +14,8 @@ export default function ArtworksPage() {
   const [status, setStatus] = useState("");
   const [ordering, setOrdering] = useState("-created_at");
   const [count, setCount] = useState(0);
+  const { addItem } = useCartStore();
+  const { isAuthenticated } = useAuthStore();
 
   const fetchArtworks = async () => {
     setLoading(true);
@@ -100,6 +104,17 @@ export default function ArtworksPage() {
                     >
                       {aw.is_favorited ? "❤️" : "🤍"}
                     </button>
+                    {aw.status === "available" && isAuthenticated && (
+                      <button
+                        style={styles.cartBtn}
+                        onClick={async () => {
+                          try { await addItem(aw.id); toast.success("Sepete eklendi!"); }
+                          catch (err: any) { toast.error(err.response?.data?.detail || "Hata."); }
+                        }}
+                      >
+                        🛒
+                      </button>
+                    )}
                     <Link to={`/artworks/${aw.id}`} style={styles.detailBtn}>Detay</Link>
                   </div>
                 </div>
@@ -133,4 +148,5 @@ const styles: Record<string, React.CSSProperties> = {
   price: { fontSize: 18, fontWeight: 700, color: "#e94560" },
   favBtn: { background: "none", border: "none", fontSize: 20, cursor: "pointer", padding: 4 },
   detailBtn: { background: "#1a1a2e", color: "#fff", textDecoration: "none", padding: "6px 14px", borderRadius: 6, fontSize: 13 },
+  cartBtn: { background: "#e94560", color: "#fff", border: "none", borderRadius: 6, padding: "6px 10px", cursor: "pointer", fontSize: 14 },
 };
