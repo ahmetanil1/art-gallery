@@ -26,7 +26,7 @@ export default function Navbar() {
   return (
     <nav style={styles.nav}>
       <div style={styles.left}>
-        <Link to="/" style={styles.brand}>🎨 Sanat Galerisi</Link>
+        <Link to="/" style={styles.brand}>Sanat Galerisi</Link>
         <div style={styles.navLinks}>
           <Link to="/artworks" style={isActive("/artworks")}>Eserler</Link>
           <Link to="/events" style={isActive("/events")}>Etkinlikler</Link>
@@ -37,62 +37,62 @@ export default function Navbar() {
       <div style={styles.right}>
         {isAuthenticated ? (
           <>
-            <Link to="/favorites" style={isActive("/favorites")}>❤️</Link>
-            <Link to="/comparisons" style={isActive("/comparisons")}>⚖️</Link>
+            <Link to="/favorites" style={isActive("/favorites")}>Favoriler</Link>
             <Link to="/cart" style={{ ...isActive("/cart"), position: "relative" }}>
-              🛒
+              Sepet
               {item_count > 0 && (
                 <span style={styles.cartBadge}>{item_count}</span>
               )}
             </Link>
-            <Link to="/reservations" style={isActive("/reservations")}>📋</Link>
-            <Link to="/orders" style={isActive("/orders")}>📦</Link>
-            <Link to="/support" style={isActive("/support")}>🎧</Link>
+            <Link to="/reservations" style={isActive("/reservations")}>Rezervasyonlar</Link>
+            <Link to="/orders" style={isActive("/orders")}>Siparişler</Link>
+            <Link to="/support" style={isActive("/support")}>Destek</Link>
 
             {/* User dropdown */}
             <div style={styles.userMenu}>
               <button style={styles.userBtn} onClick={() => setMenuOpen(!menuOpen)}>
                 <span style={styles.avatar}>
-                  {user?.first_name?.[0]?.toUpperCase() || "👤"}
+                  {user?.first_name?.[0]?.toUpperCase() || "U"}
                 </span>
                 <span style={styles.userName}>
                   {user?.first_name || user?.email?.split("@")[0]}
                 </span>
-                <span>▾</span>
+                <span style={styles.chevron}>▾</span>
               </button>
               {menuOpen && (
                 <div style={styles.dropdown}>
                   <Link to="/profile" style={styles.dropItem} onClick={() => setMenuOpen(false)}>
-                    👤 Profilim
+                    Profilim
                   </Link>
                   <Link to="/orders" style={styles.dropItem} onClick={() => setMenuOpen(false)}>
-                    🛒 Siparişlerim
+                    Siparişlerim
                   </Link>
                   <Link to="/reservations" style={styles.dropItem} onClick={() => setMenuOpen(false)}>
-                    📋 Rezervasyonlarım
+                    Rezervasyonlarım
                   </Link>
                   {(user?.role === "admin" || user?.role === "gallery_manager") && (
                     <>
+                      <hr style={styles.divider} />
                       <Link to="/admin" style={{ ...styles.dropItem, color: "#e94560", fontWeight: 600 }} onClick={() => setMenuOpen(false)}>
-                        📊 Admin Dashboard
+                        Admin Paneli
                       </Link>
                       <Link to="/admin/events" style={styles.dropItem} onClick={() => setMenuOpen(false)}>
-                        🎭 Etkinlik Yönetimi
+                        Etkinlik Yönetimi
                       </Link>
                       <Link to="/admin/users" style={styles.dropItem} onClick={() => setMenuOpen(false)}>
-                        👥 Kullanıcı Yönetimi
+                        Kullanıcı Yönetimi
                       </Link>
                       <Link to="/admin/artworks" style={styles.dropItem} onClick={() => setMenuOpen(false)}>
-                        🖼️ Eser Yönetimi
+                        Eser Yönetimi
                       </Link>
                       <Link to="/admin/analytics" style={styles.dropItem} onClick={() => setMenuOpen(false)}>
-                        📈 Analitikler
+                        Analitikler
                       </Link>
                     </>
                   )}
                   <hr style={styles.divider} />
                   <button style={styles.dropLogout} onClick={handleLogout}>
-                    🚪 Çıkış Yap
+                    Çıkış Yap
                   </button>
                 </div>
               )}
@@ -155,6 +155,7 @@ const styles: Record<string, React.CSSProperties> = {
     background: "none", border: "none", color: "#e74c3c",
     textAlign: "left", cursor: "pointer", fontSize: 14,
   },
+  chevron: { fontSize: 10, opacity: 0.7 },
   cartBadge: {
     position: "absolute", top: -6, right: -8,
     background: "#e94560", color: "#fff",

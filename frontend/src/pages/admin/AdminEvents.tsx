@@ -9,7 +9,7 @@ const STATUS_LABELS: Record<string, string> = {
   upcoming: "Yaklaşan", ongoing: "Devam Ediyor", completed: "Tamamlandı", cancelled: "İptal",
 };
 const TYPE_LABELS: Record<string, string> = {
-  workshop: "🎨 Atölye", exhibition: "🖼️ Sergi", seminar: "📚 Seminer", tour: "🗺️ Tur", other: "📌 Diğer",
+  workshop: "Atölye", exhibition: "Sergi", seminar: "Seminer", tour: "Tur", other: "Diğer",
 };
 const RES_STATUS_COLORS: Record<string, string> = {
   pending: "#f39c12", confirmed: "#27ae60", cancelled: "#e74c3c", completed: "#3498db", no_show: "#95a5a6",
@@ -143,19 +143,19 @@ export default function AdminEvents() {
   return (
     <div style={s.page}>
       <div style={s.header}>
-        <h1 style={s.title}>🎭 Etkinlik Yönetimi</h1>
+        <h1 style={s.title}>Etkinlik Yönetimi</h1>
         <button style={s.addBtn} onClick={() => { setShowForm(true); setEditEvent(null); setForm({ ...EMPTY_FORM }); }}>
-          ➕ Yeni Etkinlik
+          Yeni Etkinlik
         </button>
       </div>
 
       {/* Sekmeler */}
       <div style={s.tabs}>
         <button style={{ ...s.tab, ...(tab === "events" ? s.activeTab : {}) }} onClick={() => setTab("events")}>
-          🎭 Etkinlikler ({events.length})
+          Etkinlikler ({events.length})
         </button>
         <button style={{ ...s.tab, ...(tab === "reservations" ? s.activeTab : {}) }} onClick={() => setTab("reservations")}>
-          📋 Rezervasyonlar
+          Rezervasyonlar
         </button>
       </div>
 
@@ -211,7 +211,7 @@ export default function AdminEvents() {
                       <td style={s.td}>
                         <div style={{ display: "flex", gap: 6 }}>
                           <button style={s.resBtn} onClick={() => { setSelectedEvent(ev); setTab("reservations"); }}>
-                            📋
+                            Rezervasyonlar
                           </button>
                           <button style={s.editBtn} onClick={() => {
                             setEditEvent(ev);
@@ -226,8 +226,8 @@ export default function AdminEvents() {
                               status: ev.status,
                             });
                             setShowForm(true);
-                          }}>✏️</button>
-                          <button style={s.deleteBtn} onClick={() => handleDelete(ev.id)}>🗑️</button>
+                          }}>Düzenle</button>
+                          <button style={s.deleteBtn} onClick={() => handleDelete(ev.id)}>Sil</button>
                         </div>
                       </td>
                     </tr>
@@ -337,11 +337,11 @@ export default function AdminEvents() {
                 <div>
                   <label style={s.label}>Tür *</label>
                   <select style={s.input} value={form.event_type} onChange={(e) => setForm({ ...form, event_type: e.target.value })}>
-                    <option value="workshop">🎨 Atölye</option>
-                    <option value="exhibition">🖼️ Sergi</option>
-                    <option value="seminar">📚 Seminer</option>
-                    <option value="tour">🗺️ Tur</option>
-                    <option value="other">📌 Diğer</option>
+                    <option value="workshop">Atölye</option>
+                    <option value="exhibition">Sergi</option>
+                    <option value="seminar">Seminer</option>
+                    <option value="tour">Tur</option>
+                    <option value="other">Diğer</option>
                   </select>
                 </div>
 

@@ -26,7 +26,7 @@ export default function AdminDashboard() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div style={styles.loading}>📊 Yükleniyor...</div>;
+  if (loading) return <div style={styles.loading}>Yükleniyor...</div>;
   if (!data) return null;
 
   const maxRevenue = Math.max(...data.daily_orders.map((d) => d.revenue), 1);
@@ -34,11 +34,12 @@ export default function AdminDashboard() {
   return (
     <div style={styles.page}>
       <div style={styles.header}>
-        <h1 style={styles.title}>📊 Admin Dashboard</h1>
+        <h1 style={styles.title}>Admin Dashboard</h1>
         <div style={styles.headerLinks}>
-          <Link to="/admin/users" style={styles.headerBtn}>👥 Kullanıcılar</Link>
-          <Link to="/admin/artworks" style={styles.headerBtn}>🖼️ Eserler</Link>
-          <Link to="/admin/analytics" style={styles.headerBtn}>📈 Analitik</Link>
+          <Link to="/admin/users" style={styles.headerBtn}>Kullanıcılar</Link>
+          <Link to="/admin/artworks" style={styles.headerBtn}>Eserler</Link>
+          <Link to="/admin/events" style={styles.headerBtn}>Etkinlikler</Link>
+          <Link to="/admin/analytics" style={styles.headerBtn}>Analitik</Link>
         </div>
       </div>
 
@@ -55,8 +56,7 @@ export default function AdminDashboard() {
           { icon: "🎧", label: "Destek Talepleri", value: data.support.open + data.support.in_progress, sub: `${data.support.open} açık`, color: "#e74c3c" },
         ].map((s) => (
           <div key={s.label} style={styles.statCard}>
-            <div style={{ ...styles.statIcon, background: s.color + "20", color: s.color }}>{s.icon}</div>
-            <div>
+            <div style={{ ...styles.statIcon, background: s.color + "20", color: s.color }}>{s.icon}</div>            <div>
               <div style={styles.statValue}>{s.value}</div>
               <div style={styles.statLabel}>{s.label}</div>
               <div style={styles.statSub}>{s.sub}</div>
@@ -68,7 +68,7 @@ export default function AdminDashboard() {
       <div style={styles.bottomGrid}>
         {/* Günlük sipariş grafiği */}
         <div style={styles.chartCard}>
-          <h2 style={styles.cardTitle}>📈 Son 7 Gün Siparişler</h2>
+          <h2 style={styles.cardTitle}>Son 7 Gün Siparişler</h2>
           <div style={styles.barChart}>
             {data.daily_orders.map((d) => (
               <div key={d.date} style={styles.barGroup}>
@@ -91,7 +91,7 @@ export default function AdminDashboard() {
 
         {/* En çok görüntülenen eserler */}
         <div style={styles.chartCard}>
-          <h2 style={styles.cardTitle}>👁️ En Çok Görüntülenen Eserler</h2>
+          <h2 style={styles.cardTitle}>En Çok Görüntülenen Eserler</h2>
           <div style={styles.topList}>
             {data.top_artworks.map((aw, i) => (
               <div key={aw.id} style={styles.topItem}>
@@ -101,7 +101,7 @@ export default function AdminDashboard() {
                   <span style={styles.topMeta}>₺{Number(aw.price).toLocaleString()}</span>
                 </div>
                 <div style={styles.topRight}>
-                  <span style={styles.viewCount}>👁️ {aw.view_count}</span>
+                  <span style={styles.viewCount}>{aw.view_count} görüntülenme</span>
                   <span style={{ ...styles.statusDot, background: aw.status === "available" ? "#27ae60" : "#e74c3c" }} />
                 </div>
               </div>
@@ -110,25 +110,22 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Hızlı erişim */}
       <div style={styles.quickAccess}>
-        <h2 style={styles.cardTitle}>⚡ Hızlı Erişim</h2>
+        <h2 style={styles.cardTitle}>Hızlı Erişim</h2>
         <div style={styles.quickGrid}>
           {[
-            { to: "/admin/artworks/new", icon: "➕", label: "Yeni Eser Ekle" },
-            { to: "/admin/events", icon: "🎭", label: "Etkinlik Yönetimi" },
-            { to: "/admin/users", icon: "👥", label: "Kullanıcıları Yönet" },
-            { to: "/admin/analytics", icon: "📈", label: "Detaylı Analitik" },
-            { to: "http://localhost:8000/admin/", icon: "🔑", label: "Django Admin", external: true },
+            { to: "/admin/events", label: "Etkinlik Yönetimi" },
+            { to: "/admin/artworks", label: "Eser Yönetimi" },
+            { to: "/admin/users", label: "Kullanıcı Yönetimi" },
+            { to: "/admin/analytics", label: "Detaylı Analitik" },
+            { to: "http://localhost:8000/admin/", label: "Django Admin", external: true },
           ].map((item) => (
             item.external ? (
               <a key={item.label} href={item.to} target="_blank" rel="noreferrer" style={styles.quickCard}>
-                <span style={styles.quickIcon}>{item.icon}</span>
                 <span style={styles.quickLabel}>{item.label}</span>
               </a>
             ) : (
               <Link key={item.label} to={item.to} style={styles.quickCard}>
-                <span style={styles.quickIcon}>{item.icon}</span>
                 <span style={styles.quickLabel}>{item.label}</span>
               </Link>
             )
@@ -173,7 +170,6 @@ const styles: Record<string, React.CSSProperties> = {
   statusDot: { width: 8, height: 8, borderRadius: "50%" },
   quickAccess: { background: "#fff", borderRadius: 12, padding: 24, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" },
   quickGrid: { display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 },
-  quickCard: { display: "flex", flexDirection: "column", alignItems: "center", gap: 8, padding: 20, background: "#f9f9f9", borderRadius: 10, textDecoration: "none", color: "inherit", border: "1px solid #eee" },
-  quickIcon: { fontSize: 28 },
-  quickLabel: { fontSize: 13, fontWeight: 600, color: "#333", textAlign: "center" },
+  quickCard: { display: "flex", alignItems: "center", justifyContent: "center", padding: "18px 12px", background: "#f9f9f9", borderRadius: 10, textDecoration: "none", color: "#1a1a2e", border: "1px solid #eee", fontWeight: 600, fontSize: 14 },
+  quickLabel: { fontSize: 14, fontWeight: 600, color: "#333", textAlign: "center" },
 };

@@ -131,9 +131,9 @@ export default function AdminArtworks() {
   return (
     <div style={styles.page}>
       <div style={styles.header}>
-        <h1 style={styles.title}>🖼️ Eser Yönetimi</h1>
+        <h1 style={styles.title}>Eser Yönetimi</h1>
         <button style={styles.addBtn} onClick={() => { setShowForm(true); setEditArtwork(null); resetForm(); }}>
-          ➕ Yeni Eser Ekle
+          Yeni Eser Ekle
         </button>
       </div>
 
