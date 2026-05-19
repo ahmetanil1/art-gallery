@@ -1,0 +1,594 @@
+// ============================================================
+// Online Sanat Galerisi ve Atölye Rezervasyon Sistemi
+// DBML — dbdiagram.io için hazırlanmıştır
+// ============================================================
+
+// ── 1. USERS ────────────────────────────────────────────────
+Table users {
+  id            bigint      [primary key, increment]
+  username      varchar(150) [unique, not null]
+  email         varchar(254) [unique, not null]
+  password      varchar(128) [not null]
+  first_name    varchar(150) [default: '']
+  last_name     varchar(150) [default: '']
+  phone         varchar(20)  [default: '']
+  address       text         [default: '']
+  profile_picture varchar    [null, note: 'upload_to: profile_pictures/']
+  role          varchar(20)  [not null, default: 'customer', note: 'customer | admin | gallery_manager']
+  is_verified   boolean      [not null, default: false]
+  is_active     boolean      [not null, default: true]
+  is_staff      boolean      [not null, default: false]
+  is_superuser  boolean      [not null, default: false]
+  last_login    timestamp    [null]
+  date_joined   timestamp    [not null]
+  created_at    timestamp    [not null]
+  updated_at    timestamp    [not null]
+
+  indexes {
+    email        [name: 'users_email_idx']
+    role         [name: 'users_role_idx']
+    created_at   [name: 'users_created_at_brin', note: 'BRIN']
+  }
+}
+
+// ── 2. ARTISTS ──────────────────────────────────────────────
+Table artists {
+  id              bigint      [primary key, increment]
+  name            varchar(200) [not null]
+  bio             text         [default: '']
+  birth_year      integer      [null]
+  nationality     varchar(100) [default: '']
+  profile_picture varchar      [null, note: 'upload_to: artists/<uuid>.<ext>']
+  website         varchar(200) [default: '']
+  created_at      timestamp    [not null]
+
+  indexes {
+    name [name: 'artists_name_idx']
+  }
+}
+
+// ── 3. CATEGORIES ───────────────────────────────────────────
+Table categories {
+  id          bigint      [primary key, increment]
+  name        varchar(100) [unique, not null]
+  description text         [default: '']
+  slug        varchar(50)  [unique, not null]
+}
+
+// ── 4. ARTWORKS ─────────────────────────────────────────────
+Table artworks {
+  id            bigint        [primary key, increment]
+  title         varchar(300)  [not null]
+  artist_id     bigint        [not null, ref: > artists.id]
+  category_id   bigint        [null,     ref: > categories.id]
+  description   text          [not null]
+  year_created  integer       [null]
+  medium        varchar(200)  [default: '']
+  dimensions    varchar(100)  [default: '']
+  price         decimal(12,2) [not null]
+  status        varchar(20)   [not null, default: 'available', note: 'available | sold | reserved | not_for_sale']
+  view_count    integer       [not null, default: 0]
+  search_vector tsvector      [null, note: 'PostgreSQL full-text search — GIN index']
+  created_at    timestamp     [not null]
+  updated_at    timestamp     [not null]
+
+  indexes {
+    status      [name: 'artworks_status_idx']
+    artist_id   [name: 'artworks_artist_idx']
+    category_id [name: 'artworks_category_idx']
+    price       [name: 'artworks_price_idx']
+    created_at  [name: 'artworks_created_at_brin', note: 'BRIN']
+    search_vector [name: 'artworks_search_gin', note: 'GIN']
+  }
+}
+
+// ── 5. ARTWORK_IMAGES ───────────────────────────────────────
+Table artwork_images {
+  id         bigint   [primary key, increment]
+  artwork_id bigint   [not null, ref: > artworks.id]
+  image      varchar  [not null, note: 'upload_to: artworks/<artwork_id>/<uuid>.<ext>']
+  is_primary boolean  [not null, default: false]
+  order      smallint [not null, default: 0]
+
+  indexes {
+    (artwork_id, order) [note: 'ordering']
+  }
+}
+
+// ── 6. FAVORITES ────────────────────────────────────────────
+Table favorites {
+  id         bigint    [primary key, increment]
+  user_id    bigint    [not null, ref: > users.id]
+  artwork_id bigint    [not null, ref: > artworks.id]
+  created_at timestamp [not null]
+
+  indexes {
+    (user_id, artwork_id) [unique, name: 'favorites_user_artwork_uniq']
+    user_id               [name: 'favorites_user_idx']
+  }
+}
+
+// ── 7. ARTWORK_COMPARISONS ──────────────────────────────────
+Table artwork_comparisons {
+  id       bigint    [primary key, increment]
+  user_id  bigint    [not null, ref: > users.id]
+  name     varchar(200) [default: '']
+  saved_at timestamp [not null]
+}
+
+// M2M pivot: artwork_comparisons <-> artworks
+Table artwork_comparisons_artworks {
+  artwork_comparison_id bigint [not null, ref: > artwork_comparisons.id]
+  artwork_id            bigint [not null, ref: > artworks.id]
+
+  indexes {
+    (artwork_comparison_id, artwork_id) [pk]
+  }
+}
+
+// ── 8. EVENT_CATEGORIES ─────────────────────────────────────
+Table event_categories {
+  id          bigint       [primary key, increment]
+  name        varchar(100) [unique, not null]
+  description text         [default: '']
+}
+
+// ── 9. EVENTS ───────────────────────────────────────────────
+Table events {
+  id             bigint        [primary key, increment]
+  title          varchar(300)  [not null]
+  description    text          [not null]
+  event_type     varchar(20)   [not null, default: 'workshop', note: 'workshop | exhibition | seminar | tour | other']
+  category_id    bigint        [null, ref: > event_categories.id]
+  organizer_id   bigint        [null, ref: > users.id]
+  location       varchar(300)  [not null]
+  start_datetime timestamp     [not null]
+  end_datetime   timestamp     [not null]
+  capacity       integer       [not null]
+  price          decimal(10,2) [not null]
+  status         varchar(20)   [not null, default: 'upcoming', note: 'upcoming | ongoing | completed | cancelled']
+  image          varchar       [null, note: 'upload_to: events/']
+  search_vector  tsvector      [null, note: 'PostgreSQL full-text search — GIN index']
+  created_at     timestamp     [not null]
+  updated_at     timestamp     [not null]
+
+  indexes {
+    status         [name: 'events_status_idx']
+    event_type     [name: 'events_type_idx']
+    price          [name: 'events_price_idx']
+    start_datetime [name: 'events_start_brin', note: 'BRIN']
+    search_vector  [name: 'events_search_gin', note: 'GIN']
+  }
+}
+
+// ── 10. EVENT_COMPARISONS ───────────────────────────────────
+Table event_comparisons {
+  id       bigint       [primary key, increment]
+  user_id  bigint       [not null, ref: > users.id]
+  name     varchar(200) [default: '']
+  saved_at timestamp    [not null]
+}
+
+// M2M pivot: event_comparisons <-> events
+Table event_comparisons_events {
+  event_comparison_id bigint [not null, ref: > event_comparisons.id]
+  event_id            bigint [not null, ref: > events.id]
+
+  indexes {
+    (event_comparison_id, event_id) [pk]
+  }
+}
+
+// ── 11. RESERVATIONS ────────────────────────────────────────
+Table reservations {
+  id                  bigint    [primary key, increment]
+  user_id             bigint    [not null, ref: > users.id]
+  event_id            bigint    [not null, ref: > events.id]
+  participant_count   integer   [not null, default: 1]
+  status              varchar(20) [not null, default: 'pending', note: 'pending | confirmed | cancelled | completed | no_show']
+  notes               text      [default: '']
+  reserved_at         timestamp [not null]
+  updated_at          timestamp [not null]
+  cancelled_at        timestamp [null]
+  cancellation_reason text      [default: '']
+
+  indexes {
+    (user_id, status)  [name: 'reservations_user_status_idx']
+    (event_id, status) [name: 'reservations_event_status_idx']
+    reserved_at        [name: 'reservations_reserved_at_brin', note: 'BRIN']
+  }
+}
+
+// ── 12. RESERVATION_HISTORY ─────────────────────────────────
+Table reservation_history {
+  id                    bigint    [primary key, increment]
+  reservation_id        bigint    [not null, ref: > reservations.id]
+  changed_by_id         bigint    [null, ref: > users.id]
+  old_status            varchar(20) [not null]
+  new_status            varchar(20) [not null]
+  old_participant_count integer   [null]
+  new_participant_count integer   [null]
+  changed_at            timestamp [not null]
+  note                  text      [default: '']
+
+  indexes {
+    changed_at [name: 'res_history_changed_at_brin', note: 'BRIN']
+  }
+}
+
+// ── 13. CAMPAIGNS ───────────────────────────────────────────
+Table campaigns {
+  id              bigint        [primary key, increment]
+  name            varchar(200)  [not null]
+  description     text          [default: '']
+  discount_type   varchar(20)   [not null, note: 'percentage | fixed | free_slot']
+  discount_rate   decimal(5,2)  [null]
+  discount_amount decimal(10,2) [null]
+  target          varchar(20)   [not null, default: 'all', note: 'all | specific_users | new_users']
+  start_date      timestamp     [not null]
+  end_date        timestamp     [not null]
+  is_active       boolean       [not null, default: true]
+  created_at      timestamp     [not null]
+
+  indexes {
+    is_active              [name: 'campaigns_active_idx']
+    (start_date, end_date) [name: 'campaigns_dates_brin', note: 'BRIN']
+  }
+}
+
+// M2M pivot: campaigns <-> artworks
+Table campaigns_artworks {
+  campaign_id bigint [not null, ref: > campaigns.id]
+  artwork_id  bigint [not null, ref: > artworks.id]
+
+  indexes {
+    (campaign_id, artwork_id) [pk]
+  }
+}
+
+// M2M pivot: campaigns <-> events
+Table campaigns_events {
+  campaign_id bigint [not null, ref: > campaigns.id]
+  event_id    bigint [not null, ref: > events.id]
+
+  indexes {
+    (campaign_id, event_id) [pk]
+  }
+}
+
+// ── 14. COUPONS ─────────────────────────────────────────────
+Table coupons {
+  id            bigint        [primary key, increment]
+  campaign_id   bigint        [not null, ref: > campaigns.id]
+  code          varchar(50)   [unique, not null]
+  discount_rate decimal(5,2)  [not null]
+  max_uses      integer       [not null, default: 1]
+  used_count    integer       [not null, default: 0]
+  valid_from    timestamp     [not null]
+  valid_until   timestamp     [not null]
+  is_active     boolean       [not null, default: true]
+
+  indexes {
+    code                    [name: 'coupons_code_idx']
+    (is_active, valid_until) [name: 'coupons_active_valid_idx']
+  }
+}
+
+// M2M pivot: coupons <-> users (atanmış kuponlar)
+Table coupons_assigned_users {
+  coupon_id bigint [not null, ref: > coupons.id]
+  user_id   bigint [not null, ref: > users.id]
+
+  indexes {
+    (coupon_id, user_id) [pk]
+  }
+}
+
+// ── 15. ORDERS ──────────────────────────────────────────────
+Table orders {
+  id               bigint        [primary key, increment]
+  user_id          bigint        [not null, ref: > users.id]
+  coupon_id        bigint        [null, ref: > coupons.id]
+  status           varchar(20)   [not null, default: 'pending', note: 'pending | paid | shipped | delivered | cancelled | refunded']
+  payment_method   varchar(20)   [null, note: 'credit_card | debit_card | bank_transfer | cash']
+  total_amount     decimal(12,2) [not null]
+  discount_amount  decimal(10,2) [not null, default: 0]
+  shipping_address text          [default: '']
+  notes            text          [default: '']
+  paid_at          timestamp     [null]
+  created_at       timestamp     [not null]
+  updated_at       timestamp     [not null]
+
+  indexes {
+    (user_id, status) [name: 'orders_user_status_idx']
+    created_at        [name: 'orders_created_at_brin', note: 'BRIN']
+  }
+}
+
+// ── 16. ORDER_ITEMS ─────────────────────────────────────────
+Table order_items {
+  id         bigint        [primary key, increment]
+  order_id   bigint        [not null, ref: > orders.id]
+  artwork_id bigint        [not null, ref: > artworks.id]
+  quantity   integer       [not null, default: 1]
+  unit_price decimal(12,2) [not null]
+}
+
+// ── 17. PAYMENTS ────────────────────────────────────────────
+Table payments {
+  id             bigint        [primary key, increment]
+  order_id       bigint        [not null, ref: > orders.id]
+  reservation_id bigint        [null, ref: > reservations.id]
+  amount         decimal(12,2) [not null]
+  method         varchar(20)   [not null]
+  status         varchar(20)   [not null, default: 'pending', note: 'pending | success | failed | refunded']
+  transaction_id varchar(200)  [default: '']
+  paid_at        timestamp     [null]
+  created_at     timestamp     [not null]
+
+  indexes {
+    status     [name: 'payments_status_idx']
+    created_at [name: 'payments_created_at_brin', note: 'BRIN']
+  }
+}
+
+// ── 18. RESERVATION_DISCOUNTS ───────────────────────────────
+Table reservation_discounts {
+  id             bigint    [primary key, increment]
+  reservation_id bigint    [not null, ref: > reservations.id]
+  coupon_id      bigint    [not null, ref: > coupons.id]
+  is_active      boolean   [not null, default: true]
+  applied_at     timestamp [not null]
+
+  indexes {
+    (reservation_id, coupon_id) [unique, name: 'res_discount_uniq']
+  }
+}
+
+// ── 19. CARTS ───────────────────────────────────────────────
+Table carts {
+  id         bigint    [primary key, increment]
+  user_id    bigint    [not null, ref: - users.id, note: 'OneToOne']
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+// ── 20. CART_ITEMS ──────────────────────────────────────────
+Table cart_items {
+  id         bigint    [primary key, increment]
+  cart_id    bigint    [not null, ref: > carts.id]
+  artwork_id bigint    [not null, ref: > artworks.id]
+  quantity   integer   [not null, default: 1]
+  added_at   timestamp [not null]
+
+  indexes {
+    (cart_id, artwork_id) [unique, name: 'cart_items_uniq']
+  }
+}
+
+// ── 21. ARTWORK_REVIEWS ─────────────────────────────────────
+Table artwork_reviews {
+  id                   bigint    [primary key, increment]
+  user_id              bigint    [not null, ref: > users.id]
+  artwork_id           bigint    [not null, ref: > artworks.id]
+  rating               smallint  [not null, note: '1–5']
+  comment              text      [not null]
+  is_verified_purchase boolean   [not null, default: false]
+  is_approved          boolean   [not null, default: true]
+  helpful_count        integer   [not null, default: 0]
+  created_at           timestamp [not null]
+  updated_at           timestamp [not null]
+
+  indexes {
+    (user_id, artwork_id)    [unique, name: 'artwork_reviews_user_artwork_uniq']
+    (artwork_id, is_approved) [name: 'artwork_reviews_artwork_idx']
+    rating                   [name: 'artwork_reviews_rating_idx']
+    created_at               [name: 'artwork_reviews_created_brin', note: 'BRIN']
+  }
+}
+
+// ── 22. EVENT_REVIEWS ───────────────────────────────────────
+Table event_reviews {
+  id             bigint    [primary key, increment]
+  user_id        bigint    [not null, ref: > users.id]
+  event_id       bigint    [not null, ref: > events.id]
+  reservation_id bigint    [null, ref: - reservations.id, note: 'OneToOne']
+  rating         smallint  [not null, note: '1–5']
+  comment        text      [not null]
+  is_approved    boolean   [not null, default: true]
+  helpful_count  integer   [not null, default: 0]
+  created_at     timestamp [not null]
+  updated_at     timestamp [not null]
+
+  indexes {
+    (user_id, event_id)    [unique, name: 'event_reviews_user_event_uniq']
+    (event_id, is_approved) [name: 'event_reviews_event_idx']
+    rating                 [name: 'event_reviews_rating_idx']
+    created_at             [name: 'event_reviews_created_brin', note: 'BRIN']
+  }
+}
+
+// ── 23. REVIEW_REPLIES ──────────────────────────────────────
+Table review_replies {
+  id               bigint    [primary key, increment]
+  replied_by_id    bigint    [not null, ref: > users.id]
+  review_type      varchar(10) [not null, note: 'artwork | event']
+  artwork_review_id bigint   [null, ref: - artwork_reviews.id, note: 'OneToOne']
+  event_review_id  bigint    [null, ref: - event_reviews.id,  note: 'OneToOne']
+  reply_text       text      [not null]
+  created_at       timestamp [not null]
+  updated_at       timestamp [not null]
+}
+
+// ── 24. REVIEW_VOTES ────────────────────────────────────────
+Table review_votes {
+  id               bigint    [primary key, increment]
+  user_id          bigint    [not null, ref: > users.id]
+  review_type      varchar(10) [not null, note: 'artwork | event']
+  artwork_review_id bigint   [null, ref: > artwork_reviews.id]
+  event_review_id  bigint    [null, ref: > event_reviews.id]
+  vote             varchar(15) [not null, note: 'helpful | not_helpful']
+  created_at       timestamp [not null]
+
+  indexes {
+    (user_id, artwork_review_id) [unique, name: 'review_votes_user_artwork_uniq']
+    (user_id, event_review_id)   [unique, name: 'review_votes_user_event_uniq']
+  }
+}
+
+// ── 25. SUPPORT_TICKETS ─────────────────────────────────────
+Table support_tickets {
+  id          bigint       [primary key, increment]
+  user_id     bigint       [not null, ref: > users.id]
+  subject     varchar(300) [not null]
+  category    varchar(20)  [not null, default: 'other', note: 'order | reservation | payment | artwork | account | other']
+  status      varchar(20)  [not null, default: 'open', note: 'open | in_progress | resolved | closed']
+  created_at  timestamp    [not null]
+  updated_at  timestamp    [not null]
+  resolved_at timestamp    [null]
+
+  indexes {
+    (user_id, status) [name: 'sup_tickets_user_status_idx']
+    created_at        [name: 'support_tickets_created_brin', note: 'BRIN']
+  }
+}
+
+// ── 26. SUPPORT_MESSAGES ────────────────────────────────────
+Table support_messages {
+  id             bigint    [primary key, increment]
+  ticket_id      bigint    [not null, ref: > support_tickets.id]
+  sender_id      bigint    [not null, ref: > users.id]
+  message        text      [not null]
+  is_staff_reply boolean   [not null, default: false]
+  created_at     timestamp [not null]
+
+  indexes {
+    created_at [name: 'support_messages_created_brin', note: 'BRIN']
+  }
+}
+
+// ============================================================
+// ÖRNEK VERİLER
+// ============================================================
+
+Records users (id, username, email, role, is_verified) {
+  1, 'amtyrgnc',       'amtyrgnc@gmail.com',        'customer',        true
+  2, 'ahmetyorganci61','ahmetyorganci61@gmail.com',  'customer',        true
+  3, 'zeynep_d',       'zeynep@test.com',            'customer',        true
+  4, 'mehmet_y',       'mehmet@test.com',            'customer',        true
+  5, 'elif_s',         'elif@test.com',              'customer',        true
+  6, 'can_o',          'can@test.com',               'customer',        true
+  7, 'galeri_mgr',     'galeri@test.com',            'gallery_manager', true
+}
+
+Records artists (id, name, nationality, birth_year) {
+  1, 'Ahmet Yorgancı',   'Türk',      1990
+  2, 'A. Yorgancı (61)', 'Türk',      1985
+  3, 'Leyla Çiçek',      'Türk',      1982
+  4, 'Marco Rossi',      'İtalyan',   1968
+  5, 'Yuki Tanaka',      'Japon',     1990
+  6, 'Fatma Arslan',     'Türk',      1979
+  7, 'Carlos Mendez',    'Meksikalı', 1985
+}
+
+Records categories (id, name, slug) {
+  1, 'Yağlı Boya',    'yagliboy'
+  2, 'Suluboya',      'suluboya'
+  3, 'Heykel',        'heykel'
+  4, 'Fotoğraf',      'fotograf'
+  5, 'Dijital Sanat', 'dijital'
+  6, 'Soyut',         'soyut'
+  7, 'Karma Teknik',  'karma'
+}
+
+Records artworks (id, title, artist_id, category_id, price, status) {
+  1,  "Boğaz'da Gün Batımı", 1, 1, 12500.00, 'available'
+  2,  'Anadolu Kadını',       1, 1, 18000.00, 'available'
+  3,  'Kapadokya Sabahı',     1, 1, 22000.00, 'available'
+  4,  'İstanbul Silueti',     1, 7, 9800.00,  'reserved'
+  5,  'Mavi Yolculuk',        1, 1, 7500.00,  'sold'
+  6,  'Sonsuzluk #1',         2, 6, 35000.00, 'available'
+  7,  'Sonsuzluk #2',         2, 6, 38000.00, 'available'
+  8,  'Özgürlük Heykeli',     2, 3, 55000.00, 'available'
+  9,  'Dijital Kaos',         2, 5, 8500.00,  'available'
+  10, 'Kırmızı Oda',          2, 6, 28000.00, 'not_for_sale'
+  11, 'Bahar Rüzgarı',        3, 2, 4800.00,  'available'
+  12, 'Kar Yağışı',           3, 2, 3200.00,  'available'
+  13, 'Venedik Kanalları',    4, 1, 28000.00, 'available'
+  14, 'Akdeniz Kıyısı',       4, 4, 2800.00,  'available'
+  15, 'Dijital Evren',        5, 5, 6500.00,  'available'
+  16, 'Şehir Işıkları',       5, 5, 5500.00,  'available'
+  17, 'Toprak Ana',           6, 3, 42000.00, 'available'
+  18, 'Renklerin Dansı',      7, 6, 9200.00,  'available'
+  19, 'Fiesta',               7, 6, 11500.00, 'available'
+}
+
+Records campaigns (id, name, discount_type, discount_rate, target, is_active) {
+  1, 'Yaz Sanat Festivali',   'percentage', 15.00, 'all',            true
+  2, 'Öğrenci İndirimi',      'percentage', 10.00, 'specific_users', true
+  3, 'Koleksiyoner Kampanyası','percentage', 25.00, 'all',            true
+}
+
+Records coupons (id, campaign_id, code, discount_rate, max_uses, is_active) {
+  1, 1, 'SANAT15',      15.00, 100, true
+  2, 1, 'YENIMÜŞTERI',  20.00, 50,  true
+  3, 2, 'OGRENCI10',    10.00, 200, true
+  4, 3, 'KOLEKSIYON25', 25.00, 30,  true
+}
+
+Records reservations (id, user_id, event_id, participant_count, status) {
+  1, 1, 1, 2, 'confirmed'
+  2, 1, 6, 1, 'confirmed'
+  3, 1, 9, 1, 'completed'
+  4, 2, 2, 1, 'confirmed'
+  5, 2, 3, 1, 'pending'
+  6, 2, 10, 2, 'completed'
+  7, 3, 4, 1, 'confirmed'
+  8, 3, 8, 1, 'confirmed'
+  9, 4, 5, 2, 'pending'
+  10, 5, 7, 1, 'confirmed'
+  11, 6, 1, 1, 'confirmed'
+}
+
+Records orders (id, user_id, coupon_id, status, payment_method, total_amount) {
+  1, 1, null, 'paid',      'credit_card',   35000.00
+  2, 1, null, 'delivered', 'credit_card',   8500.00
+  3, 1, null, 'pending',   'bank_transfer', 28000.00
+  4, 2, null, 'paid',      'credit_card',   12500.00
+  5, 2, null, 'shipped',   'debit_card',    22000.00
+  6, 3, null, 'delivered', 'credit_card',   4800.00
+  7, 4, null, 'paid',      'credit_card',   6500.00
+  8, 5, null, 'pending',   'bank_transfer', 9200.00
+}
+
+Records order_items (id, order_id, artwork_id, quantity, unit_price) {
+  1, 1, 6,  1, 35000.00
+  2, 2, 9,  1, 8500.00
+  3, 3, 13, 1, 28000.00
+  4, 4, 1,  1, 12500.00
+  5, 5, 3,  1, 22000.00
+  6, 6, 11, 1, 4800.00
+  7, 7, 15, 1, 6500.00
+  8, 8, 18, 1, 9200.00
+}
+
+Records artwork_reviews (id, user_id, artwork_id, rating, is_verified_purchase) {
+  1, 1, 6,  5, true
+  2, 1, 9,  4, true
+  3, 1, 13, 5, false
+  4, 2, 1,  5, true
+  5, 2, 3,  4, true
+  6, 2, 18, 4, false
+  7, 3, 11, 5, true
+  8, 3, 15, 4, false
+  9, 4, 16, 4, true
+}
+
+Records support_tickets (id, user_id, subject, category, status) {
+  1, 1, 'Venedik Kanalları siparişim ne zaman kargoya verilecek?', 'order',       'in_progress'
+  2, 1, 'Sonsuzluk #1 eseri için fatura talebi',                   'order',       'resolved'
+  3, 2, 'Modern Heykel Teknikleri rezervasyonumu iptal etmek istiyorum', 'reservation', 'open'
+  4, 2, "Boğaz'da Gün Batımı eseri hasarlı teslim edildi",         'artwork',     'in_progress'
+  5, 3, 'Kupon kodu çalışmıyor',                                   'payment',     'resolved'
+  6, 4, 'Hesap şifremi unuttum',                                   'account',     'resolved'
+}
