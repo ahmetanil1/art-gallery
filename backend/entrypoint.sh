@@ -23,11 +23,9 @@ python manage.py migrate --noinput
 echo "📦 Static dosyalar toplanıyor..."
 python manage.py collectstatic --noinput
 
-echo "🚀 Gunicorn başlatılıyor..."
-exec gunicorn sanat_galerisi.wsgi:application \
-  --bind 0.0.0.0:8000 \
-  --workers 3 \
-  --timeout 120 \
-  --access-logfile - \
-  --error-logfile - \
-  --log-level info
+echo "🚀 Daphne (ASGI) başlatılıyor..."
+exec daphne \
+  -b 0.0.0.0 \
+  -p 8000 \
+  --access-log - \
+  sanat_galerisi.asgi:application

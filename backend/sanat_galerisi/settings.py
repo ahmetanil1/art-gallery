@@ -9,16 +9,18 @@ DEBUG = config("DEBUG", default=True, cast=bool)
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="*", cast=Csv())
 
 INSTALLED_APPS = [
+    "daphne",                      # ASGI server — en üstte olmalı
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "django.contrib.postgres",    # Third party
+    "django.contrib.postgres",
     "rest_framework",
     "rest_framework_simplejwt",
     "corsheaders",
+    "channels",
     # Local apps
     "users",
     "artworks",
@@ -61,6 +63,17 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "sanat_galerisi.wsgi.application"
+ASGI_APPLICATION = "sanat_galerisi.asgi.application"
+
+# ─── Django Channels / Redis ───────────────────────────────────────────────────
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [(config("REDIS_HOST", default="redis"), 6379)],
+        },
+    },
+}
 
 # ─── PostgreSQL ────────────────────────────────────────────────────────────────
 DATABASES = {

@@ -17,6 +17,18 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:7-alpine
+    container_name: sanat_galerisi_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   backend:
     build:
       context: ./backend
@@ -33,18 +45,19 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
 
   nginx:
     build:
-      context: ./nginx
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: nginx/Dockerfile
     container_name: sanat_galerisi_nginx
     restart: unless-stopped
     ports:
       - "80:80"
     volumes:
       - media_files:/app/media:ro
-      - frontend_dist:/usr/share/nginx/html:ro
     depends_on:
       - backend
 
@@ -52,4 +65,3 @@ volumes:
   postgres_data:
   media_files:
   static_files:
-  frontend_dist:

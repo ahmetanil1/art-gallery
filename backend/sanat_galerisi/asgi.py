@@ -1,16 +1,21 @@
-"""
-ASGI config for sanat_galerisi project.
-
-It exposes the ASGI callable as a module-level variable named ``application``.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/6.0/howto/deployment/asgi/
-"""
-
 import os
 
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'sanat_galerisi.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sanat_galerisi.settings")
 
-application = get_asgi_application()
+# Django ASGI uygulamasını önce başlat (model importları için)
+django_asgi_app = get_asgi_application()
+
+from channels.routing import ProtocolTypeRouter, URLRouter  # noqa: E402
+from support.routing import websocket_urlpatterns            # noqa: E402
+from support.ws_middleware import JWTAuthMiddleware          # noqa: E402
+
+application = ProtocolTypeRouter(
+    {
+        "http": django_asgi_app,
+        "websocket": JWTAuthMiddleware(
+            URLRouter(websocket_urlpatterns)
+        ),
+    }
+)
