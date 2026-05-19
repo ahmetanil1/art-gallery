@@ -116,6 +116,7 @@ export default function AdminDashboard() {
         <div style={styles.quickGrid}>
           {[
             { to: "/admin/artworks/new", icon: "➕", label: "Yeni Eser Ekle" },
+            { to: "/admin/events", icon: "🎭", label: "Etkinlik Yönetimi" },
             { to: "/admin/users", icon: "👥", label: "Kullanıcıları Yönet" },
             { to: "/admin/analytics", icon: "📈", label: "Detaylı Analitik" },
             { to: "http://localhost:8000/admin/", icon: "🔑", label: "Django Admin", external: true },

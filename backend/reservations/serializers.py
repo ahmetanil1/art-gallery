@@ -60,6 +60,8 @@ class ReservationSerializer(serializers.ModelSerializer):
     total_price = serializers.DecimalField(
         max_digits=12, decimal_places=2, read_only=True
     )
+    user_name = serializers.SerializerMethodField()
+    user_email = serializers.CharField(source="user.email", read_only=True)
 
     class Meta:
         model = Reservation
@@ -68,8 +70,12 @@ class ReservationSerializer(serializers.ModelSerializer):
             "participant_count", "status", "notes",
             "total_price", "reserved_at", "updated_at",
             "cancelled_at", "cancellation_reason",
+            "user_name", "user_email",
         )
         read_only_fields = ("status", "reserved_at", "updated_at", "cancelled_at")
+
+    def get_user_name(self, obj):
+        return obj.user.get_full_name() or obj.user.email
 
 
 class ReservationHistorySerializer(serializers.ModelSerializer):

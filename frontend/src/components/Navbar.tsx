@@ -76,6 +76,9 @@ export default function Navbar() {
                       <Link to="/admin" style={{ ...styles.dropItem, color: "#e94560", fontWeight: 600 }} onClick={() => setMenuOpen(false)}>
                         📊 Admin Dashboard
                       </Link>
+                      <Link to="/admin/events" style={styles.dropItem} onClick={() => setMenuOpen(false)}>
+                        🎭 Etkinlik Yönetimi
+                      </Link>
                       <Link to="/admin/users" style={styles.dropItem} onClick={() => setMenuOpen(false)}>
                         👥 Kullanıcı Yönetimi
                       </Link>

@@ -23,8 +23,20 @@ class ReservationViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        qs = Reservation.objects.select_related("event").filter(user=user)
+        qs = Reservation.objects.select_related("event", "user")
 
+        # Admin/galeri yöneticisi tüm rezervasyonları görebilir
+        if user.role in ("admin", "gallery_manager"):
+            event_id = self.request.query_params.get("event")
+            status_filter = self.request.query_params.get("status")
+            if event_id:
+                qs = qs.filter(event_id=event_id)
+            if status_filter:
+                qs = qs.filter(status=status_filter)
+            return qs.order_by("-reserved_at")
+
+        # Normal kullanıcı sadece kendi rezervasyonlarını görür
+        qs = qs.filter(user=user)
         status_filter = self.request.query_params.get("status")
         if status_filter:
             qs = qs.filter(status=status_filter)

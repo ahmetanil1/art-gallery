@@ -23,6 +23,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminArtworks from "./pages/admin/AdminArtworks";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
+import AdminEvents from "./pages/admin/AdminEvents";
 import AdminRoute from "./components/AdminRoute";
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -68,6 +69,7 @@ export default function App() {
         <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
         <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
         <Route path="/admin/artworks" element={<AdminRoute><AdminArtworks /></AdminRoute>} />
+        <Route path="/admin/events" element={<AdminRoute><AdminEvents /></AdminRoute>} />
         <Route path="/admin/analytics" element={<AdminRoute><AdminAnalytics /></AdminRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
