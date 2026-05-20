@@ -1,18 +1,40 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { useCartStore } from "../store/cartStore";
+import { useNotifStore } from "../store/notifStore";
+import { useNotifications } from "../hooks/useNotifications";
 
 export default function Navbar() {
   const { isAuthenticated, user, logout } = useAuthStore();
   const { item_count, fetchCart } = useCartStore();
+  const { notifs, unread, fetchNotifs, markRead, markAllRead } = useNotifStore();
   const navigate = useNavigate();
   const location = useLocation();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuOpen, setMenuOpen]   = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const notifRef = useRef<HTMLDivElement>(null);
+
+  // WebSocket bağlantısı
+  useNotifications(isAuthenticated);
 
   useEffect(() => {
-    if (isAuthenticated) fetchCart().catch(() => {});
+    if (isAuthenticated) {
+      fetchCart().catch(() => {});
+      fetchNotifs();
+    }
   }, [isAuthenticated]);
+
+  // Dışarı tıklayınca kapat
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setNotifOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -22,6 +44,12 @@ export default function Navbar() {
 
   const isActive = (path: string) =>
     location.pathname.startsWith(path) ? styles.activeLink : styles.link;
+
+  const handleNotifClick = async (n: typeof notifs[0]) => {
+    if (!n.is_read) await markRead(n.id);
+    setNotifOpen(false);
+    if (n.action_url) navigate(n.action_url);
+  };
 
   return (
     <nav style={styles.nav}>
@@ -47,6 +75,47 @@ export default function Navbar() {
             <Link to="/reservations" style={isActive("/reservations")}>Rezervasyonlar</Link>
             <Link to="/orders" style={isActive("/orders")}>Siparişler</Link>
             <Link to="/support" style={isActive("/support")}>Destek</Link>
+
+            {/* Notification Bell */}
+            <div style={styles.userMenu} ref={notifRef}>
+              <button style={styles.userBtn} onClick={() => setNotifOpen(!notifOpen)}>
+                BİLDİRİMLER 🔔
+                {unread > 0 && <span style={styles.cartBadge}>{unread}</span>}
+              </button>
+              {notifOpen && (
+                <div style={{...styles.dropdown, right: -50, width: 300, maxHeight: 400, overflowY: "auto"}}>
+                  <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 16px", borderBottom: "1px solid #eee", background: "#f9f9f9" }}>
+                    <strong style={{ color: "#333" }}>Bildirimler</strong>
+                    <button 
+                      onClick={() => markAllRead()} 
+                      style={{ background: "none", border: "none", color: "#3498db", cursor: "pointer", fontSize: 13 }}
+                    >Tümünü Okundu İşaretle</button>
+                  </div>
+                  {notifs.length === 0 ? (
+                    <div style={{ padding: 16, color: "#888", textAlign: "center", fontSize: 14 }}>
+                      Bildirim yok
+                    </div>
+                  ) : (
+                    notifs.map(n => (
+                      <div 
+                        key={n.id} 
+                        onClick={() => handleNotifClick(n)}
+                        style={{ 
+                          padding: "12px 16px", borderBottom: "1px solid #f5f5f5", cursor: "pointer",
+                          background: n.is_read ? "#fff" : "#f0f8ff"
+                        }}
+                      >
+                        <div style={{ fontWeight: 600, fontSize: 14, color: "#2c3e50" }}>{n.title}</div>
+                        <div style={{ fontSize: 13, color: "#666", marginTop: 4 }}>{n.message}</div>
+                        <div style={{ fontSize: 11, color: "#aaa", marginTop: 4 }}>
+                          {new Date(n.created_at).toLocaleString('tr-TR')}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
 
             {/* User dropdown */}
             <div style={styles.userMenu}>

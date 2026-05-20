@@ -15,9 +15,17 @@ class OrderViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        qs = Order.objects.filter(user=self.request.user).prefetch_related(
+        user = self.request.user
+        qs = Order.objects.prefetch_related(
             "items__artwork__artist", "items__artwork__images"
         )
+        if user.role in ("admin", "gallery_manager"):
+            status_filter = self.request.query_params.get("status")
+            if status_filter:
+                qs = qs.filter(status=status_filter)
+            return qs.order_by("-created_at")
+
+        qs = qs.filter(user=user)
         status_filter = self.request.query_params.get("status")
         if status_filter:
             qs = qs.filter(status=status_filter)
@@ -31,8 +39,8 @@ class OrderViewSet(viewsets.ModelViewSet):
     def http_method_not_allowed(self, request, *args, **kwargs):
         return super().http_method_not_allowed(request, *args, **kwargs)
 
-    # Siparişler güncellenemez, sadece okunabilir ve oluşturulabilir
-    http_method_names = ["get", "post", "head", "options"]
+    # Adminler order durumunu güncelleyebilir
+    http_method_names = ["get", "post", "patch", "head", "options"]
 
     @action(detail=True, methods=["post"])
     def pay(self, request, pk=None):

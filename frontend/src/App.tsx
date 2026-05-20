@@ -24,6 +24,8 @@ import AdminUsers from "./pages/admin/AdminUsers";
 import AdminArtworks from "./pages/admin/AdminArtworks";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminEvents from "./pages/admin/AdminEvents";
+import AdminOrders from "./pages/admin/AdminOrders";
+import AdminReservations from "./pages/admin/AdminReservations";
 import AdminRoute from "./components/AdminRoute";
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -70,6 +72,10 @@ export default function App() {
         <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
         <Route path="/admin/artworks" element={<AdminRoute><AdminArtworks /></AdminRoute>} />
         <Route path="/admin/events" element={<AdminRoute><AdminEvents /></AdminRoute>} />
+        <Route path="/admin/orders" element={<AdminRoute><AdminOrders /></AdminRoute>} />
+        <Route path="/admin/orders/:id" element={<AdminRoute><AdminOrders /></AdminRoute>} />
+        <Route path="/admin/reservations" element={<AdminRoute><AdminReservations /></AdminRoute>} />
+        <Route path="/admin/reservations/:id" element={<AdminRoute><AdminReservations /></AdminRoute>} />
         <Route path="/admin/analytics" element={<AdminRoute><AdminAnalytics /></AdminRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

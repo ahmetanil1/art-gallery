@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     "reviews",
     "support",
     "campaigns",
+    "notifs",
 ]
 
 MIDDLEWARE = [

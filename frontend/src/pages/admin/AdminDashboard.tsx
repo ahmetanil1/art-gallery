@@ -39,6 +39,8 @@ export default function AdminDashboard() {
           <Link to="/admin/users" style={styles.headerBtn}>Kullanıcılar</Link>
           <Link to="/admin/artworks" style={styles.headerBtn}>Eserler</Link>
           <Link to="/admin/events" style={styles.headerBtn}>Etkinlikler</Link>
+          <Link to="/admin/orders" style={styles.headerBtn}>Siparişler</Link>
+          <Link to="/admin/reservations" style={styles.headerBtn}>Rezervasyonlar</Link>
           <Link to="/admin/analytics" style={styles.headerBtn}>Analitik</Link>
         </div>
       </div>
@@ -114,6 +116,8 @@ export default function AdminDashboard() {
         <h2 style={styles.cardTitle}>Hızlı Erişim</h2>
         <div style={styles.quickGrid}>
           {[
+            { to: "/admin/orders", label: "Sipariş Yönetimi" },
+            { to: "/admin/reservations", label: "Rezervasyon Yönetimi" },
             { to: "/admin/events", label: "Etkinlik Yönetimi" },
             { to: "/admin/artworks", label: "Eser Yönetimi" },
             { to: "/admin/users", label: "Kullanıcı Yönetimi" },

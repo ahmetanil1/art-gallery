@@ -26,6 +26,7 @@ urlpatterns = [
     path("api/", include("campaigns.urls")),
     path("api/", include("reviews.urls")),
     path("api/", include("support.urls")),
+    path("api/", include("notifs.urls")),
     # Admin API
     path("api/admin/dashboard/", AdminDashboardView.as_view(), name="admin-dashboard"),
     path("api/admin/analytics/", AdminAnalyticsView.as_view(), name="admin-analytics"),

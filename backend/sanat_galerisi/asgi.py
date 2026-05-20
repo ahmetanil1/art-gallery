@@ -8,14 +8,15 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sanat_galerisi.settings")
 django_asgi_app = get_asgi_application()
 
 from channels.routing import ProtocolTypeRouter, URLRouter  # noqa: E402
-from support.routing import websocket_urlpatterns            # noqa: E402
-from support.ws_middleware import JWTAuthMiddleware          # noqa: E402
+from support.routing import websocket_urlpatterns as support_ws   # noqa: E402
+from notifs.routing import websocket_urlpatterns as notif_ws      # noqa: E402
+from support.ws_middleware import JWTAuthMiddleware                # noqa: E402
 
 application = ProtocolTypeRouter(
     {
         "http": django_asgi_app,
         "websocket": JWTAuthMiddleware(
-            URLRouter(websocket_urlpatterns)
+            URLRouter(support_ws + notif_ws)
         ),
     }
 )
